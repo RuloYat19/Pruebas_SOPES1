@@ -114,6 +114,13 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 	var containers []modelos.ProcessInfo
 	for _, p := range procesos {
 		if p.IsContainer {
+			// Ignorar procesos del sistema Docker
+			if strings.Contains(p.Name, "docker-proxy") ||
+				strings.Contains(p.Name, "containerd-shim") ||
+				strings.Contains(p.Name, "containerd") ||
+				strings.Contains(p.Name, "dockerd") {
+				continue
+			}
 			containers = append(containers, p)
 		}
 	}
