@@ -49,10 +49,10 @@ func (r *Lector) LeerTodo() ([]modelos.ProcessInfo, modelos.SystemInfo, error) {
 		}
 
 		// Se detectan secciones
-		if linea == "MEMORIA RAM" {
+		if strings.Contains(linea, "MEMORIA RAM") {
 			seccion = "system"
 			continue
-		} else if linea == "PROCESOS" {
+		} else if strings.Contains(linea, "PROCESOS") {
 			seccion = "processes"
 			continue
 		}
