@@ -46,7 +46,7 @@ func (p *ProcessInfo) ParseLine(line string) error {
 
 	// Comando/Contenedor
 	p.Command = parts[2]
-	p.IsContainer = (parts[2] == "CONTENEDOR")
+	p.IsContainer = strings.Contains(parts[2], "CONTAINER") || strings.Contains(parts[2], "CONTENEDOR")
 
 	// VSZ en KB
 	vsz, err := strconv.ParseInt(parts[3], 10, 64)
