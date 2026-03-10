@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Base de datos Valkey
+  valkey:
+    image: valkey/valkey:latest
+    container_name: proyecto2-valkey
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+    command: valkey-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proyecto2-net
+
+  # Grafana para visualización
+  grafana:
+    image: grafana/grafana:latest
+    container_name: proyecto2-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      valkey:
+        condition: service_healthy
+    networks:
+      - proyecto2-net
+
+# Volúmenes persistentes
+volumes:
+  valkey-data:
+  grafana-data:
+
+# Red interna para comunicación entre servicios
+networks:
+  proyecto2-net:
+    driver: bridge

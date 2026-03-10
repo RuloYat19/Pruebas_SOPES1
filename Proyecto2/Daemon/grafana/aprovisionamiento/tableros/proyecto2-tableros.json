@@ -1,0 +1,113 @@
+{
+  "title": "Proyecto 2 - Monitor de Contenedores",
+  "uid": "proyecto2",
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "RAM Total",
+      "type": "stat",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 4, "x": 0, "y": 0},
+      "targets": [
+        {
+          "query": "GET system:latest",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "deckbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "RAM en Uso",
+      "type": "stat",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 4, "x": 4, "y": 0},
+      "targets": [
+        {
+          "query": "HGET system:latest used_ram",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "deckbytes"
+        }
+      }
+    },
+    {
+      "title": "RAM Libre",
+      "type": "stat",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 4, "x": 8, "y": 0},
+      "targets": [
+        {
+          "query": "HGET system:latest free_ram",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "deckbytes"
+        }
+      }
+    },
+    {
+      "title": "Uso de RAM (Histórico)",
+      "type": "graph",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {
+          "query": "ZRANGE system:ram:history 0 -1 WITHSCORES",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Contenedores Eliminados",
+      "type": "barchart",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {
+          "query": "ZRANGE containers:history 0 -1 WITHSCORES",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Top 5 Consumo RAM",
+      "type": "piechart",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 24},
+      "targets": [
+        {
+          "query": "GET top:ram:1; GET top:ram:2; GET top:ram:3; GET top:ram:4; GET top:ram:5",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Top 5 Consumo CPU",
+      "type": "piechart",
+      "datasource": "Valkey",
+      "gridPos": {"h": 8, "w": 6, "x": 6, "y": 24},
+      "targets": [
+        {
+          "query": "GET top:cpu:1; GET top:cpu:2; GET top:cpu:3; GET top:cpu:4; GET top:cpu:5",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

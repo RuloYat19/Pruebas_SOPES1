@@ -1,0 +1,10 @@
+ModuloKernel/*.order
+ModuloKernel/*.symvers
+ModuloKernel/*.mod
+ModuloKernel/*.mod.*
+
+ModuloKernel/.modulo.*
+ModuloKernel/.Module.*
+ModuloKernel/.modules.*
+ModuloKernel/..module-common.*
+ModuloKernel/.module-common.*
