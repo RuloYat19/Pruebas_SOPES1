@@ -127,22 +127,51 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 		log.Printf("Contenedores Docker encontrados: %d", len(contenedoresDocker))
 	}
 
+	// 3. DEPURACIÓN: Ver qué PIDs tenemos de Docker y del Kernel
+	log.Println("--- INICIO DIAGNÓSTICO ---")
+
+	// Mostrar los primeros 10 PIDs de Docker (para no saturar el log)
+	dockerPIDs := make([]int, 0, len(pidAContainerID))
+	for pid := range pidAContainerID {
+		dockerPIDs = append(dockerPIDs, pid)
+	}
+	if len(dockerPIDs) > 10 {
+		log.Printf("PIDs en Docker (primeros 10): %v", dockerPIDs[:10])
+	} else {
+		log.Printf("PIDs en Docker: %v", dockerPIDs)
+	}
+
+	// Mostrar los primeros 10 procesos que el kernel MARCA como contenedores
+	kernelContainerPIDs := make([]int, 0)
+	kernelContainerNames := make([]string, 0)
+	for _, p := range procesos {
+		if p.IsContainer {
+			kernelContainerPIDs = append(kernelContainerPIDs, p.PID)
+			kernelContainerNames = append(kernelContainerNames, p.Name)
+		}
+	}
+	if len(kernelContainerPIDs) > 10 {
+		log.Printf("PIDs del Kernel (marcados como contenedor, primeros 10): %v", kernelContainerPIDs[:10])
+		log.Printf("Nombres del Kernel (primeros 10): %v", kernelContainerNames[:10])
+	} else {
+		log.Printf("PIDs del Kernel (marcados como contenedor): %v", kernelContainerPIDs)
+		log.Printf("Nombres del Kernel: %v", kernelContainerNames)
+	}
+	log.Println("--- FIN DIAGNÓSTICO ---")
+
 	// 3. Separar contenedores (solo los ACTIVOS)
 	var containers []modelos.ProcessInfo
 	for _, p := range procesos {
-		if p.IsContainer {
-			// Ignorar procesos del sistema Docker
+		// Por ahora, consideramos TODO lo que tenga PID en el mapa
+		if _, existe := pidAContainerID[p.PID]; existe {
+			// Se ignoran los procesos del sistema Docker
 			if strings.Contains(p.Name, "docker-proxy") ||
-				strings.Contains(p.Name, "containerd-shim") ||
-				strings.Contains(p.Name, "containerd") ||
-				strings.Contains(p.Name, "dockerd") {
+				strings.Contains(p.Name, "containerd-shim") {
 				continue
 			}
-
-			// Solo considerar si está en el mapa de contenedores activos
-			if _, existe := pidAContainerID[p.PID]; existe {
-				containers = append(containers, p)
-			}
+			containers = append(containers, p)
+			log.Printf("DEBUG - Contenedor detectado: PID=%d, Name=%s, RSS=%d KB",
+				p.PID, p.Name, p.RSS_KB)
 		}
 	}
 
