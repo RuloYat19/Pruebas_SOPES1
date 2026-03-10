@@ -110,7 +110,24 @@ func main() {
 func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *docker.Manager) {
 	log.Println("Analizando contenedores para decidir cuáles eliminar...")
 
-	// 1. Se separan los contenedores por categoría
+	// 1. Obtener mapa de PID a ContainerID usando el NUEVO MÉTODO
+	pidAContainerID, err := dockerMgr.ObtenerMapaPIDContainerID()
+	if err != nil {
+		log.Printf("Error obteniendo mapa de contenedores: %v", err)
+		return
+	}
+	log.Printf("Total contenedores activos con PID: %d", len(pidAContainerID))
+
+	// 2. Obtener contenedores Docker para referencia (opcional)
+	contenedoresDocker, err := dockerMgr.ObtenerContenedores()
+	if err != nil {
+		log.Printf("Error obteniendo contenedores Docker: %v", err)
+	} else {
+		// Usar la variable para algo, aunque sea solo un log
+		log.Printf("Contenedores Docker encontrados: %d", len(contenedoresDocker))
+	}
+
+	// 3. Separar contenedores (solo los ACTIVOS)
 	var containers []modelos.ProcessInfo
 	for _, p := range procesos {
 		if p.IsContainer {
@@ -121,78 +138,74 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 				strings.Contains(p.Name, "dockerd") {
 				continue
 			}
-			containers = append(containers, p)
+
+			// Solo considerar si está en el mapa de contenedores activos
+			if _, existe := pidAContainerID[p.PID]; existe {
+				containers = append(containers, p)
+			}
 		}
 	}
 
-	log.Printf("El total de contenedores detectados son %d", len(containers))
+	log.Printf("Contenedores detectados (activos): %d", len(containers))
 
-	// 2. Se obtiene la lista de  los contenedores de Docker reales
-	contenedoresDocker, err := dockerMgr.ObtenerContenedores()
-	if err != nil {
-		log.Printf("Hubo problemas al obtener los contenedores de Docker: %v", err)
-		return
-	}
-	log.Printf("EL total contenedores activos en Docker es de %d", len(contenedoresDocker))
-
-	// 3. Se clasifican los contenedores por consumo
+	// 4. Clasificar por consumo (con umbrales ajustados)
 	var altoConsumo, bajoConsumo, otros []modelos.ProcessInfo
 
 	for _, proc := range containers {
-		// Se identifican si es Grafana para no eliminarla
+		// Mantener Grafana
 		if strings.Contains(strings.ToLower(proc.Name), "grafana") ||
 			strings.Contains(strings.ToLower(proc.Command), "grafana") {
-			log.Printf("El contenedor de Grafana se ha mantenido: PID=%d, %s", proc.PID, proc.Name)
+			log.Printf("Grafana mantenido: PID=%d", proc.PID)
 			continue
 		}
 
-		// Se clasifica según consumo usando el RSS como métrica principal
-		if proc.RSS_KB > 50000 { // Más de 50MB de RAM
+		// UMBRALES AJUSTADOS para mejor clasificación
+		if proc.RSS_KB > 30000 { // Más de 30MB
 			altoConsumo = append(altoConsumo, proc)
-		} else if proc.RSS_KB < 10000 { // Menos de 10MB de RAM
+		} else if proc.RSS_KB < 5000 { // Menos de 5MB
 			bajoConsumo = append(bajoConsumo, proc)
 		} else {
 			otros = append(otros, proc)
 		}
 	}
 
-	log.Printf("De alto consumo hay %d, de bajo consumo hay %d y otros hay %d", len(altoConsumo), len(bajoConsumo), len(otros))
+	log.Printf("Clasificación - Alto: %d, Bajo: %d, Otros: %d",
+		len(altoConsumo), len(bajoConsumo), len(otros))
 
-	// 4. Se aplica la lógica de negocio del proyecto
+	// 5. Aplicar lógica de negocio
 	contenedoresAEliminar := decidirContenedoresAEliminar(altoConsumo, bajoConsumo, otros)
 
 	if len(contenedoresAEliminar) == 0 {
-		log.Println("No hay contenedores que eliminar en esta ocasión")
+		log.Println("No hay contenedores para eliminar")
 		return
 	}
 
 	log.Printf("Eliminando %d contenedores...", len(contenedoresAEliminar))
 
-	// 5. Se eliminarán los contenedores
+	// 6. Eliminar contenedores usando el mapa
 	for _, proceso := range contenedoresAEliminar {
-		// Se busca el ID del contenedor en Docker
-		containerID := dockerMgr.EncontrarIDContenedor(proceso, contenedoresDocker)
-		if containerID == "" {
-			// Se intenta con el método más preciso por si falla el primero por si las moscas
-			id, err := dockerMgr.EncontrarIDContenedorPorPID(proceso)
+		containerID := pidAContainerID[proceso.PID]
 
+		if containerID == "" {
+			// Intentar con el método alternativo
+			id, err := dockerMgr.ObtenerIDPorPID(proceso.PID)
 			if err == nil {
 				containerID = id
 			}
 		}
 
 		if containerID == "" {
-			log.Printf("Hubo problemas al encontrar ID para el contenedor PID=%d (%s). Por lo tanto, se pasa a omitir", proceso.PID, proceso.Name)
+			log.Printf("No se encontró ID para PID=%d (%s)", proceso.PID, proceso.Name)
 			continue
 		}
 
-		log.Printf("Eliminando contenedor %s con PID = %d, %s", containerID[:12], proceso.PID, proceso.Name)
+		log.Printf("Eliminando %s (PID=%d)", containerID[:12], proceso.PID)
 		if err := dockerMgr.PararyRemoverContenedor(containerID); err != nil {
-			log.Printf("Hubo problemas al eliminar el contenedor %s: %v", containerID[:12], err)
+			log.Printf("Error eliminando %s: %v", containerID[:12], err)
 		} else {
-			log.Printf("El Contenedor %s se ha eliminado correctamente.", containerID[:12])
+			log.Printf("Contenedor %s eliminado", containerID[:12])
 		}
-		time.Sleep(1 * time.Second) // Pequeña pausa entre eliminaciones para que no se buguee o pasen vainas raras xd
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -219,10 +232,8 @@ func decidirContenedoresAEliminar(altoConsumo, bajoConsumo, otros []modelos.Proc
 
 	// 3. Se decide los que son de bajo consumo
 	if len(bajoConsumo) > 3 {
-		// Se eliminan los que son de mayor consumo para ello se ordena de forma ascendente para que los primeros sean los de menor consumo
-		sort.Slice(bajoConsumo, func(i, j int) bool {
-			return bajoConsumo[i].RSS_KB < bajoConsumo[j].RSS_KB
-		})
+		// Se ordena de mayor a menor
+		ordenarPorConsumo(bajoConsumo)
 
 		for i := 3; i < len(bajoConsumo); i++ {
 			aEliminar = append(aEliminar, bajoConsumo[i])

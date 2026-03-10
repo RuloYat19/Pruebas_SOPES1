@@ -1,3 +1,13 @@
+### Para revisar si Valkey lo está haciendo bien xd
+# Entrar al contenedor de Valkey
+docker exec -it valkey valkey-cli
+
+# Dentro de valkey-cli, ver qué datos hay
+KEYS *
+HGETALL system:latest
+ZRANGE system:ram:history 0 -1 WITHSCORES
+exit
+
 ### Comandos del flujo de trabajo
 # 1. Primera vez (crear estructura de carpetas)
 mkdir -p grafana/provisioning/{datasources,dashboards}

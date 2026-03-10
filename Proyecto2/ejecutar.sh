@@ -40,29 +40,19 @@ else
     exit 1
 fi
 
-# 3. Iniciar Valkey
+# 3. Iniciar el Valkey si no está corriendo
 echo "Iniciando Valkey..."
-if docker inspect valkey >/dev/null 2>&1; then
-    docker start valkey
-    echo "Se ha iniciado Valkey con el contenedor existente"
-else
-    docker run -d --name valkey -p 6379:6379 valkey/valkey
-    echo "Valkey creado e iniciado"
-fi
+docker run -d --name valkey -p 6379:6379 valkey/valkey 2>/dev/null || docker start valkey
+echo "Valkey listo pa comenzar con las vainas xd"
 
-# 4. Iniciar Grafana
+# 4. Iniciar Grafana si no está corriendo
 echo "Iniciando Grafana..."
-if docker inspect grafana >/dev/null 2>&1; then
-    docker start grafana
-    echo "Se ha iniciado Grafana con el contenedor existente"
-else
-    docker run -d --name grafana -p 3000:3000 grafana/grafana
-    echo "Grafana creado e iniciado"
-fi
+docker run -d --name grafana -p 3000:3000 grafana/grafana 2>/dev/null || docker start grafana
+echo "Grafana listo pa ver que pex con todo, el puerto donde se está ejecutando es: http://localhost:3000"
 
 # 5. Compilar y ejecutar daemon
 echo "Ejecutando el daemon..."
-cd Daemon
+cd Daemon_go
 go mod download 2>/dev/null || true
 go build -o bin/daemon cmd/daemon/main.go
 sudo ./bin/daemon

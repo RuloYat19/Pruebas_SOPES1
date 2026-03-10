@@ -24,10 +24,50 @@ func NuevoManager() (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Hubo problemas creando el cliente de Docker: %v", err)
 	}
+
 	return &Manager{
 		cli: cli,
 		ctx: context.Background(),
 	}, nil
+}
+
+// Se obtiene el mapa de PID a ContainerID para contenedores activos
+func (m *Manager) ObtenerMapaPIDContainerID() (map[int]string, error) {
+	contenedores, err := m.cli.ContainerList(m.ctx, container.ListOptions{
+		All: false, // Solo activos
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error listando contenedores: %v", err)
+	}
+
+	mapa := make(map[int]string)
+	for _, c := range contenedores {
+		if c.State == "running" {
+			inspect, err := m.cli.ContainerInspect(m.ctx, c.ID)
+			if err == nil && inspect.State.Pid > 0 {
+				mapa[inspect.State.Pid] = c.ID
+			}
+		}
+	}
+	return mapa, nil
+}
+
+// Se obtiene el contenedor por PID
+func (m *Manager) ObtenerIDPorPID(pid int) (string, error) {
+	contenedores, err := m.cli.ContainerList(m.ctx, container.ListOptions{
+		All: true,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	for _, c := range contenedores {
+		inspect, err := m.cli.ContainerInspect(m.ctx, c.ID)
+		if err == nil && inspect.State.Pid == pid {
+			return c.ID, nil
+		}
+	}
+	return "", fmt.Errorf("no se encontró contenedor con PID %d", pid)
 }
 
 // Se listan todos los contenedores
