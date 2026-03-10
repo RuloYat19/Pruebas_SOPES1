@@ -62,7 +62,7 @@ fi
 
 # 5. Compilar y ejecutar daemon
 echo "Ejecutando el daemon..."
-cd Daemon_go
+cd Daemon
 go mod download 2>/dev/null || true
 go build -o bin/daemon cmd/daemon/main.go
 sudo ./bin/daemon
