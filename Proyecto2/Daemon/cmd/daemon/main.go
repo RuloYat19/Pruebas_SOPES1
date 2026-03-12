@@ -188,8 +188,15 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 			continue
 		}
 
-		// UMBRALES AJUSTADOS para mejor clasificación
-		if proc.RSS_KB > 30000 { // Más de 30MB
+		// Mantener Valkey
+		if strings.Contains(strings.ToLower(proc.Name), "valkey") ||
+			strings.Contains(strings.ToLower(proc.Command), "valkey") {
+			log.Printf("Valkey mantenido: PID=%d", proc.PID)
+			continue
+		}
+
+		// Clasificación de los procesos por consumo
+		if proc.RSS_KB > 10000 { // Más de 30MB
 			altoConsumo = append(altoConsumo, proc)
 		} else if proc.RSS_KB < 5000 { // Menos de 5MB
 			bajoConsumo = append(bajoConsumo, proc)
