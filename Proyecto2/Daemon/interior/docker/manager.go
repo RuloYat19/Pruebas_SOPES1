@@ -121,7 +121,7 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 		{
 			nombre: "alpine",
 			//comando: "sh -c 'while true; do echo '2^20' | bc > /dev/null; sleep 2; done'",
-			comando:     "sh -c \"apk add --no-cache bc > /dev/null 2>&1 && while true; do echo \\\"2^20\\\" | bc > /dev/null; sleep 2; done\"",
+			comando:     "sh -c 'while true; do echo '2^20' | bc >/dev/null; sleep 2; done'",
 			categoria:   "alto",
 			descripcion: "Alto consumo del CPU",
 		},
@@ -171,13 +171,13 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 		output, err := exec.Command("docker", args...).CombinedOutput()
 
 		if err != nil {
-			errorMsg := fmt.Sprintf("Hubo problemas al crear el contenedor %s: %v - %s",
-				img.nombre, err, string(output))
+			errorMsg := fmt.Sprintf("Hubo problemas al crear el contenedor %s: %v - %s", img.nombre, err, string(output))
 			log.Println(errorMsg)
 			errores = append(errores, errorMsg)
 		} else {
-			log.Printf("Contenedor creado correctamente: %s (%s)",
-				strings.TrimSpace(string(output)), nombreContenedor)
+			log.Printf("Contenedor creado correctamente: %s (%s)", strings.TrimSpace(string(output)), nombreContenedor)
+			log.Printf("Output: %s", output)
+			log.Printf("Args: %s", args)
 			contenedoresCreados++
 		}
 

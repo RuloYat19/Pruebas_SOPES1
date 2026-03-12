@@ -236,12 +236,14 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 		}
 
 		log.Printf("Eliminando %s (PID=%d)", containerID[:12], proceso.PID)
+
 		if err := dockerMgr.PararyRemoverContenedor(containerID); err != nil {
 			log.Printf("Error eliminando %s: %v", containerID[:12], err)
 		} else {
 			log.Printf("Contenedor %s eliminado", containerID[:12])
 		}
-		time.Sleep(1 * time.Second)
+
+		time.Sleep(2 * time.Second)
 	}
 }
 
