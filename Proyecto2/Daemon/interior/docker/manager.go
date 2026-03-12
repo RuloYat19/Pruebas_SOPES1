@@ -161,8 +161,23 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 
 		// Se añade el comando si existe
 		if img.comando != "" {
-			cmdParts := strings.Fields(img.comando)
-			args = append(args, cmdParts...)
+			if img.nombre == "alpine" && strings.Contains(img.comando, "sh -c") {
+				// Se separa el "sh", "-c", y el comando
+				args = append(args, "sh", "-c")
+
+				// Se extrae el comando real
+				cmdParts := strings.SplitN(img.comando, "sh -c", 2)
+				if len(cmdParts) == 2 {
+					comandoReal := strings.TrimSpace(cmdParts[1])
+					// Se quitan las comillas que rodean al comando si existen
+					comandoReal = strings.Trim(comandoReal, "'\"")
+					args = append(args, comandoReal)
+				}
+			} else {
+				// Para los comandos simples
+				cmdParts := strings.Fields(img.comando)
+				args = append(args, cmdParts...)
+			}
 		}
 
 		// Se ejecuta el comando "docker run"
