@@ -189,8 +189,8 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 		}
 
 		// Mantener Valkey
-		if strings.Contains(strings.ToLower(proc.Name), "valkey") ||
-			strings.Contains(strings.ToLower(proc.Command), "valkey") {
+		if strings.Contains(strings.ToLower(proc.Name), "valkey-server") ||
+			strings.Contains(strings.ToLower(proc.Command), "valkey-server") {
 			log.Printf("Valkey mantenido: PID=%d", proc.PID)
 			continue
 		}
