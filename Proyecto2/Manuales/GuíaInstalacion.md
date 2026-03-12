@@ -1,3 +1,10 @@
+### IP o Página de Grafana
+http://192.168.122.144:3000/
+
+### Para parar y eliminar contenedores
+docker stop $(docker ps -a | grep -E "test-|roldyoran|alpine" | awk '{print $1}') 2>/dev/null
+docker rm $(docker ps -a | grep -E "test-|roldyoran|alpine" | awk '{print $1}') 2>/dev/null
+
 ### Para revisar si Valkey lo está haciendo bien xd
 # Entrar al contenedor de Valkey
 docker exec -it valkey valkey-cli

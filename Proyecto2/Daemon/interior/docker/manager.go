@@ -120,7 +120,7 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 		},
 		{
 			nombre:      "alpine",
-			comando:     "sh -c \"while true; do echo '2^20' | bc > /dev/null; sleep 2; done\"",
+			comando:     "sh -c 'apk add --no-cache bc > /dev/null 2>&1 && while true; do echo \"2^20\" | bc > /dev/null; sleep 2; done'",
 			categoria:   "alto",
 			descripcion: "Alto consumo del CPU",
 		},
