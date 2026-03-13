@@ -17,6 +17,10 @@ fi
 # Se descarga el módulo del kernel
 sudo rmmod modulo 2>/dev/null && echo "Módulo de kernel descargado."
 
+# Se eliminan los contenedores que quedaron en Docker
+sudo docker stop $(docker ps -a | grep -E "test-|roldyoran|alpine" | awk '{print $1}') 2>/dev/null
+sudo docker rm $(docker ps -a | grep -E "test-|roldyoran|alpine" | awk '{print $1}') 2>/dev/null
+
 # Para parar los contenedores de Grafana y Valkey
 # docker stop grafana valkey
 
