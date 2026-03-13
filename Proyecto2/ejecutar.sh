@@ -50,9 +50,26 @@ echo "Iniciando Grafana..."
 docker run -d --name grafana -p 3000:3000 grafana/grafana 2>/dev/null || docker start grafana
 echo "Grafana listo pa ver que pex con todo, el puerto donde se está ejecutando es: http://localhost:3000"
 
-# 5. Compilar y ejecutar daemon
-echo "Ejecutando el daemon..."
+# 5. Se compila el daemon
+echo "🏗️ Compilando el Daemon Go..."
 cd Daemon
 go mod download 2>/dev/null || true
 go build -o bin/daemon cmd/daemon/main.go
-sudo ./bin/daemon
+echo "Daemon correctamente compilado en $(pwd)/bin/daemon"
+cd ..
+
+# 6. Se configura y arranca el servicio con Systemd
+echo "Configurando servicio systemd por favor espere atentamente y no se desespere xd"
+sudo systemctl daemon-reload
+
+# Se detiene el servicio si se estuviera corriendo de una ejecucion anterior
+sudo systemctl stop proyecto2-daemon.service 2>/dev/null || true
+
+# Se habilita para que inicie con el sistema para la primera vez
+sudo systemctl enable proyecto2-daemon.service
+
+# Se inicia el servicio de una 
+sudo systemctl start proyecto2-daemon.service
+
+# Se verifica que se haya arrancado de buena manera y no hubieron clavos
+sudo systemctl status proyecto2-daemon.service --no-pager
