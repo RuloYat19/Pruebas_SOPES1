@@ -51,7 +51,7 @@ docker run -d --name grafana -p 3000:3000 grafana/grafana 2>/dev/null || docker 
 echo "Grafana listo pa ver que pex con todo, el puerto donde se está ejecutando es: http://localhost:3000"
 
 # 5. Se compila el daemon
-echo "🏗️ Compilando el Daemon Go..."
+echo "Compilando el Daemon Go..."
 cd Daemon
 go mod download 2>/dev/null || true
 go build -o bin/daemon cmd/daemon/main.go

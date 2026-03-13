@@ -191,8 +191,8 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 			errores = append(errores, errorMsg)
 		} else {
 			log.Printf("Contenedor creado correctamente: %s (%s)", strings.TrimSpace(string(output)), nombreContenedor)
-			log.Printf("Output: %s", output)
-			log.Printf("Args: %s", args)
+			//log.Printf("Output: %s", output)
+			//log.Printf("Args: %s", args)
 			contenedoresCreados++
 		}
 

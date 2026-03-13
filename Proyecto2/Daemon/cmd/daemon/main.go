@@ -170,7 +170,7 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 				continue
 			}
 			containers = append(containers, p)
-			log.Printf("DEBUG - Contenedor detectado: PID=%d, Name=%s, RSS=%d KB",
+			log.Printf("Contenedor detectado: PID=%d, Name=%s, RSS=%d KB",
 				p.PID, p.Name, p.RSS_KB)
 		}
 	}

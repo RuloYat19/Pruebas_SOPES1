@@ -1,3 +1,6 @@
+### Para observar los logs del Daemon
+cat /var/log/proyecto2-daemon.log
+
 ### IP o Página de Grafana
 http://192.168.122.144:3000/
 
