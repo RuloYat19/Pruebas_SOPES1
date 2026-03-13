@@ -195,6 +195,7 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 			continue
 		}
 
+		log.Print("El nombre del contenedor es: " + proc.Name)
 		// Clasificación de los procesos por consumo
 		if proc.RSS_KB > 10000 { // Más de 30MB
 			altoConsumo = append(altoConsumo, proc)

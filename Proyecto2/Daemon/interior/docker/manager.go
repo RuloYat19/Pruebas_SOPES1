@@ -119,8 +119,7 @@ func (m *Manager) CrearContenedoresDePrueba() error {
 			descripcion: "Alto consumo de la RAM",
 		},
 		{
-			nombre: "alpine",
-			//comando: "sh -c 'while true; do echo '2^20' | bc > /dev/null; sleep 2; done'",
+			nombre:      "alpine",
 			comando:     "sh -c 'while true; do echo '2^20' | bc >/dev/null; sleep 2; done'",
 			categoria:   "alto",
 			descripcion: "Alto consumo del CPU",
