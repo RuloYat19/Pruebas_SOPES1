@@ -93,7 +93,6 @@ func main() {
 	}()
 
 	log.Printf("El Daemon se ha iniciado. el bucle es cada %v", intervaloBucle)
-	log.Println("Para detener ello presione las teclas Ctrl+C")
 
 	// Se maneja la señal de terminación
 	sigChan := make(chan os.Signal, 1)
@@ -195,14 +194,11 @@ func analizaryEliminarContenedores(procesos []modelos.ProcessInfo, dockerMgr *do
 			continue
 		}
 
-		log.Print("El nombre del contenedor es: " + proc.Name)
 		// Clasificación de los procesos por consumo
-		if proc.RSS_KB > 10000 { // Más de 30MB
+		if proc.Name == "sh" || proc.Name == "client" {
 			altoConsumo = append(altoConsumo, proc)
-		} else if proc.RSS_KB < 5000 { // Menos de 5MB
+		} else if proc.Name == "sleep" {
 			bajoConsumo = append(bajoConsumo, proc)
-		} else {
-			otros = append(otros, proc)
 		}
 	}
 
