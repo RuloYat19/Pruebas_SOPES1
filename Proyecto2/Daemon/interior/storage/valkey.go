@@ -31,7 +31,7 @@ func NuevoClienteValkey(addr string) *ClienteValkey {
 
 // Se guardan las métricas del sistema
 func (v *ClienteValkey) GuardarMetricasDelSistema(informacion modelos.SystemInfo) error {
-	marcaTiempo := time.Now().Unix()
+	marcaTiempo := time.Now().UnixMilli()
 
 	// Se usa TimeSeries o simples claves
 	pipe := v.cliente.Pipeline()
@@ -55,7 +55,7 @@ func (v *ClienteValkey) GuardarMetricasDelSistema(informacion modelos.SystemInfo
 
 // Se guardan las métricas de procesos
 func (v *ClienteValkey) GuardarMetricasDeProceso(procesos []modelos.ProcessInfo) error {
-	marcaTiempo := time.Now().Unix()
+	marcaTiempo := time.Now().UnixMilli()
 
 	pipe := v.cliente.Pipeline()
 
