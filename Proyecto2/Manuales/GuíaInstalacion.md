@@ -18,6 +18,10 @@ HGETALL system:latest
 ZRANGE system:ram:history 0 -1 WITHSCORES
 exit
 
+# Para borrar los datos en Valkey
+docker exec -it valkey valkey-cli DEL system:ram:history
+docker exec -it valkey valkey-cli DEL system:latest
+
 ### Comandos del flujo de trabajo
 # 1. Primera vez (crear estructura de carpetas)
 mkdir -p grafana/provisioning/{datasources,dashboards}
